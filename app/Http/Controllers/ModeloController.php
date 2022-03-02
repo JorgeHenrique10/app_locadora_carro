@@ -27,10 +27,18 @@ class ModeloController extends Controller
         }
 
         if ($request->atributos_marca) {
-            $modelos = $modelos->with('marca:id,' . $request->atributos_marca)->get();
+            $modelos = $modelos->with('marca:id,' . $request->atributos_marca);
         } else {
-            $modelos = $modelos->with('marca')->get();
+            $modelos = $modelos->with('marca');
         }
+        if ($request->filtros) {
+            $filtros = explode(';', $request->filtros);
+            foreach ($filtros as $condicao) {
+                $c = explode(':', $condicao);
+                $modelos->where($c[0], $c[1], $c[2]);
+            }
+        }
+        $modelos = $modelos->get();
 
         if ($modelos == null) {
             return response()->json(['msg' => 'Não foi encontrado nenhum registro.'], 404);

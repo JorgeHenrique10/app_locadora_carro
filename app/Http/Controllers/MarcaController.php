@@ -17,9 +17,28 @@ class MarcaController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $marcas = $this->marca->with('modelos')->get();
+        $marcas = [];
+        if ($request->atributos) {
+            $marcas = $this->marca->selectRaw($request->atributos);
+        } else {
+            $marcas = $this->marca;
+        }
+
+        if ($request->atributos_modelo) {
+            $marcas = $marcas->with('modelos:id,' . $request->atributos_modelo);
+        } else {
+            $marcas = $marcas->with('modelos');
+        }
+        if ($request->filtros) {
+            $filtros = explode(';', $request->filtros);
+            foreach ($filtros as $condicao) {
+                $c = explode(':', $condicao);
+                $marcas->where($c[0], $c[1], $c[2]);
+            }
+        }
+        $marcas = $marcas->get();
 
         if ($marcas == null) {
             return response()->json(['msg' => 'Não foi encontrado nenhum registro.'], 404);
@@ -55,9 +74,20 @@ class MarcaController extends Controller
      * @param  \App\Models\Locadora\Marca  $marca
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Request $request, $id)
     {
-        $req = $this->marca->with('modelos')->find($id);
+        $req = [];
+        if ($request->atributos) {
+            $req = $this->marca->selectRaw($request->atributos);
+        } else {
+            $req = $this->marca;
+        }
+
+        if ($request->atributos_modelo) {
+            $req = $req->with('modelos:id,' . $request->atributos_modelo)->find($id);
+        } else {
+            $req = $req->with('modelos')->find($id);
+        }
 
         if ($req == null) {
             return response()->json(['msg' => 'Não foi encontrado nenhum registro.'], 404);
