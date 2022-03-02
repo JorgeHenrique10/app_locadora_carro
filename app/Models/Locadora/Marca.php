@@ -14,14 +14,14 @@ class Marca extends Model
 
     public function modelos()
     {
-        return $this->hasMany(Modelo::class, 'modelo_id', 'id');
+        return $this->hasMany(Modelo::class, 'marca_id', 'id');
     }
 
     public function rules()
     {
         return [
             'nome' => "required|unique:marcas,nome," . $this->id . "|min:3",
-            'imagem' => 'required'
+            'imagem' => 'required|mimes:jpg,bmp,png'
         ];
     }
     public function feedback()

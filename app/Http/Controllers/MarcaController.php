@@ -4,14 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Locadora\Marca;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class MarcaController extends Controller
 {
-    private $marca;
-
-    public function __construct()
+    public function __construct(Marca $marca)
     {
-        $this->marca = new Marca();
+        $this->marca = $marca;
     }
     /**
      * Display a listing of the resource.
@@ -20,7 +19,7 @@ class MarcaController extends Controller
      */
     public function index()
     {
-        $marcas = $this->marca->all();
+        $marcas = $this->marca->with('modelos')->get();
 
         if ($marcas == null) {
             return response()->json(['msg' => 'Não foi encontrado nenhum registro.'], 404);
@@ -38,9 +37,16 @@ class MarcaController extends Controller
     {
         $request->validate($this->marca->rules(), $this->marca->feedback());
 
-        $req = $this->marca->create($request->all());
+        $this->marca->fill($request->all());
 
-        return response()->json($req, 201);
+        if ($request->file('imagem')) {
+
+            $this->marca->imagem = $request->file('imagem')->store('imagens/marca', 'public');
+        }
+
+        $this->marca->save();
+
+        return response()->json($this->marca, 201);
     }
 
     /**
@@ -51,7 +57,7 @@ class MarcaController extends Controller
      */
     public function show($id)
     {
-        $req = $this->marca->find($id);
+        $req = $this->marca->with('modelos')->find($id);
 
         if ($req == null) {
             return response()->json(['msg' => 'Não foi encontrado nenhum registro.'], 404);
@@ -77,7 +83,17 @@ class MarcaController extends Controller
 
         if ($request->method() === 'PUT') {
             $request->validate($marca->rules(), $marca->feedback());
-            $marca->update($request->all());
+
+            $marca->fill($request->all());
+
+            if ($request->file('imagem')) {
+
+                $marca->imagem = $request->file('imagem')->store('imagens/marca', 'public');
+                Storage::disk('public')->delete($marca->getOriginal()['imagem']);
+            }
+
+            $marca->save();
+
             return response()->json(['msg' => 'Marca atualizada com sucesso.', 'data' => $marca], 200);
         } else {
             $regrasDinamicas = [];
@@ -90,7 +106,16 @@ class MarcaController extends Controller
 
             $request->validate($regrasDinamicas, $marca->feedback());
 
-            $marca->update($request->all());
+            $marca->fill($request->all());
+
+            if ($request->file('imagem')) {
+
+                $marca->imagem = $request->file('imagem')->store('imagens/marca', 'public');
+                Storage::disk('public')->delete($marca->getOriginal()['imagem']);
+            }
+
+            $marca->save();
+
             return response()->json(['msg' => 'Marca atualizada com sucesso.', 'data' => $marca], 200);
         }
 
@@ -111,7 +136,9 @@ class MarcaController extends Controller
             return response()->json(['msg' => 'Não foi encontrado nenhum registro com este id.'], 404);
         }
 
-        $marca->destroy();
+        Storage::disk('public')->delete($marca->imagem);
+
+        $marca->delete();
         return response()->json(['msg' => 'Marca deletada com sucesso.'], 200);
     }
 }

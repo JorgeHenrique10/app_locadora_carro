@@ -4,27 +4,39 @@ namespace App\Http\Controllers;
 
 use App\Models\Locadora\Modelo;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ModeloController extends Controller
 {
+    public function __construct(Modelo $modelo)
+    {
+        $this->modelo = $modelo;
+    }
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
-    }
+        $modelos = [];
+        if ($request->atributos) {
+            $modelos = $this->modelo->selectRaw($request->atributos);
+        } else {
+            $modelos = $this->modelo;
+        }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
+        if ($request->atributos_marca) {
+            $modelos = $modelos->with('marca:id,' . $request->atributos_marca)->get();
+        } else {
+            $modelos = $modelos->with('marca')->get();
+        }
+
+        if ($modelos == null) {
+            return response()->json(['msg' => 'Não foi encontrado nenhum registro.'], 404);
+        }
+
+        return response()->json($modelos, 200);
     }
 
     /**
@@ -35,7 +47,18 @@ class ModeloController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate($this->modelo->rules(), $this->modelo->feedback());
+
+        $this->modelo->fill($request->all());
+
+        if ($request->file('imagem')) {
+
+            $this->modelo->imagem = $request->file('imagem')->store('imagens/modelo', 'public');
+        }
+
+        $this->modelo->save();
+
+        return response()->json($this->modelo, 201);
     }
 
     /**
@@ -44,20 +67,26 @@ class ModeloController extends Controller
      * @param  \App\Models\Locadora\Modelo  $modelo
      * @return \Illuminate\Http\Response
      */
-    public function show(Modelo $modelo)
+    public function show(Request $request, $id)
     {
-        //
-    }
+        $req = [];
+        if ($request->atributos) {
+            $req = $this->modelo->selectRaw($request->atributos);
+        } else {
+            $req = $this->modelo;
+        }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Locadora\Modelo  $modelo
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Modelo $modelo)
-    {
-        //
+        if ($request->atributos_marca) {
+            $req = $req->with('marca:id,' . $request->atributos_marca)->find($id);
+        } else {
+            $req = $req->with('marca')->find($id);
+        }
+
+        if ($req == null) {
+            return response()->json(['msg' => 'Não foi encontrado nenhum registro.'], 404);
+        }
+
+        return response()->json($req, 200);
     }
 
     /**
@@ -67,9 +96,52 @@ class ModeloController extends Controller
      * @param  \App\Models\Locadora\Modelo  $modelo
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Modelo $modelo)
+    public function update(Request $request, $id)
     {
-        //
+        $modelo = $this->modelo->find($id);
+
+        if ($modelo == null) {
+            return response()->json(['msg' => 'Não foi encontrado nenhum registro com este id.'], 404);
+        }
+
+        if ($request->method() === 'PUT') {
+            $request->validate($modelo->rules(), $modelo->feedback());
+
+            $modelo->fill($request->all());
+
+            if ($request->file('imagem')) {
+
+                $modelo->imagem = $request->file('imagem')->store('imagens/modelo', 'public');
+                Storage::disk('public')->delete($modelo->getOriginal()['imagem']);
+            }
+
+            $modelo->save();
+
+            return response()->json(['msg' => 'Modelo atualizada com sucesso.', 'data' => $modelo], 200);
+        } else {
+            $regrasDinamicas = [];
+
+            foreach ($this->modelo->rules() as $campo => $regra) {
+                if (array_key_exists($campo, $request->all())) {
+                    $regrasDinamicas[$campo] = $regra;
+                }
+            }
+
+            $request->validate($regrasDinamicas, $modelo->feedback());
+
+            $modelo->fill($request->all());
+
+            if ($request->file('imagem')) {
+
+                $modelo->imagem = $request->file('imagem')->store('imagens/modelo', 'public');
+
+                Storage::disk('public')->delete($modelo->getOriginal()['imagem']);
+            }
+
+            $modelo->save();
+
+            return response()->json(['msg' => 'Modelo atualizada com sucesso.', 'data' => $modelo], 200);
+        }
     }
 
     /**
@@ -78,8 +150,17 @@ class ModeloController extends Controller
      * @param  \App\Models\Locadora\Modelo  $modelo
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Modelo $modelo)
+    public function destroy($id)
     {
-        //
+        $modelo = $this->modelo->find($id);
+
+        if ($modelo == null) {
+            return response()->json(['msg' => 'Não foi encontrado nenhum registro com este id.'], 404);
+        }
+
+        Storage::disk('public')->delete($modelo->imagem);
+
+        $modelo->delete();
+        return response()->json(['msg' => 'Modelo deletada com sucesso.'], 200);
     }
 }

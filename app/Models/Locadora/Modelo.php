@@ -12,7 +12,7 @@ class Modelo extends Model
     protected $table = 'Modelos';
     protected $fillable = ['marca_id', 'nome', 'imagem', 'numero_portas', 'lugares', 'airbag', 'abs'];
 
-    public function marcas()
+    public function marca()
     {
         return $this->belongsTo(Marca::class, 'marca_id', 'id');
     }
@@ -22,9 +22,9 @@ class Modelo extends Model
         return [
             'marca_id' => 'required|exists:marcas,id',
             'nome' => 'required|min:3|max:200',
-            'imagem' => 'required',
-            'numero_portas' => 'required|integer',
-            'lugares' => 'required|integer',
+            'imagem' => 'required|mimes:jpg,bmp,png',
+            'numero_portas' => 'required|integer|digits_between:1,5',
+            'lugares' => 'required|integer|digits_between:1,20',
             'airbag' => 'required|boolean',
             'abs' => 'required|boolean',
         ];
