@@ -17,7 +17,7 @@ class Locacao extends Model
         'data_fim_periodo_previsto',
         'data_fim_periodo_entregue',
         'valor_diaria',
-        'km_inicial',
+        'km_inicio',
         'km_fim'
     ];
 
@@ -28,9 +28,9 @@ class Locacao extends Model
             'carro_id' => 'exists:carros,id',
             'data_inicio_periodo' => 'required|date',
             'data_fim_periodo_previsto' => 'required|date',
-            'data_fim_periodo_entregue' => 'date',
-            'valor_diaria' => 'required|decimal',
-            'km_inicial' => 'required|integer',
+            'data_fim_periodo_entregue' => 'date|nullable',
+            'valor_diaria' => 'required|numeric',
+            'km_inicio' => 'required|integer',
             'km_final' => 'integer',
         ];
     }

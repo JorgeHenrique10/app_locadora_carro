@@ -3,28 +3,36 @@
 namespace App\Http\Controllers;
 
 use App\Models\Locadora\Locacao;
+use App\Repositories\Locadora\LocacaoRepository;
 use Illuminate\Http\Request;
 
 class LocacaoController extends Controller
 {
+    public function __construct(Locacao $locacao)
+    {
+        $this->locacao = $locacao;
+    }
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
-    }
+        $locacaoRepository = new LocacaoRepository($this->locacao);
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
+        if ($request->atributos) {
+            $locacaoRepository->selectAtributosRegistro($request->atributos);
+        }
+        if ($request->filtros) {
+            $locacaoRepository->filtro($request->filtros);
+        }
+        $locacao = $locacaoRepository->getResultado();
+
+        if ($locacao == null) {
+            return response()->json(['msg' => 'Não foi encontrado nenhum registro.'], 404);
+        }
+        return response()->json($locacao, 200);
     }
 
     /**
@@ -35,7 +43,11 @@ class LocacaoController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate($this->locacao->rules(), $this->locacao->feedback());
+
+        $resp = $this->locacao->create($request->all());
+
+        return response()->json($resp, 201);
     }
 
     /**
@@ -44,20 +56,22 @@ class LocacaoController extends Controller
      * @param  \App\Models\Locadora\Locacao  $locacao
      * @return \Illuminate\Http\Response
      */
-    public function show(Locacao $locacao)
+    public function show(Request $request, $id)
     {
-        //
-    }
+        $req = [];
+        if ($request->atributos) {
+            $req = $this->locacao->selectRaw($request->atributos);
+        } else {
+            $req = $this->locacao;
+        }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Locadora\Locacao  $locacao
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Locacao $locacao)
-    {
-        //
+        $req = $req->find($id);
+
+        if ($req == null) {
+            return response()->json(['msg' => 'Não foi encontrado nenhum registro.'], 404);
+        }
+
+        return response()->json($req, 200);
     }
 
     /**
@@ -67,9 +81,35 @@ class LocacaoController extends Controller
      * @param  \App\Models\Locadora\Locacao  $locacao
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Locacao $locacao)
+    public function update(Request $request, $id)
     {
-        //
+        $locacao = $this->locacao->find($id);
+
+        if ($locacao == null) {
+            return response()->json(['msg' => 'Não foi encontrado nenhum registro com este id.'], 404);
+        }
+
+        if ($request->method() === 'PUT') {
+            $request->validate($locacao->rules(), $locacao->feedback());
+
+            $locacao->update($request->all());
+
+            return response()->json(['msg' => 'Locacao atualizado com sucesso.', 'data' => $locacao], 200);
+        } else {
+            $regrasDinamicas = [];
+
+            foreach ($this->locacao->rules() as $campo => $regra) {
+                if (array_key_exists($campo, $request->all())) {
+                    $regrasDinamicas[$campo] = $regra;
+                }
+            }
+
+            $request->validate($regrasDinamicas, $locacao->feedback());
+
+            $locacao->update($request->all());
+
+            return response()->json(['msg' => 'Locacao atualizado com sucesso.', 'data' => $locacao], 200);
+        }
     }
 
     /**
@@ -78,8 +118,15 @@ class LocacaoController extends Controller
      * @param  \App\Models\Locadora\Locacao  $locacao
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Locacao $locacao)
+    public function destroy($id)
     {
-        //
+        $locacao = $this->locacao->find($id);
+
+        if ($locacao == null) {
+            return response()->json(['msg' => 'Não foi encontrado nenhum registro com este id.'], 404);
+        }
+
+        $locacao->delete();
+        return response()->json(['msg' => 'Locacao deletada com sucesso.'], 200);
     }
 }

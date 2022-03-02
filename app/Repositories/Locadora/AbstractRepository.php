@@ -24,7 +24,7 @@ abstract class AbstractRepository
         $filtros = explode(';', $filtros);
         foreach ($filtros as $condicao) {
             $c = explode(':', $condicao);
-            $this->model->where($c[0], $c[1], $c[2]);
+            $this->model = $this->model->where($c[0], $c[1], $c[2]);
         }
     }
     public function getResultado()
