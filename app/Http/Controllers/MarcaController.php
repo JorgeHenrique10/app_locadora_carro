@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Locadora\Marca;
+use App\Repositories\Locadora\MarcaRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -19,26 +20,21 @@ class MarcaController extends Controller
      */
     public function index(Request $request)
     {
-        $marcas = [];
-        if ($request->atributos) {
-            $marcas = $this->marca->selectRaw($request->atributos);
-        } else {
-            $marcas = $this->marca;
-        }
 
+        $marcaRepository = new MarcaRepository($this->marca);
+
+        if ($request->atributos) {
+            $marcaRepository->selectAtributosRegistro($request->atributos);
+        }
         if ($request->atributos_modelo) {
-            $marcas = $marcas->with('modelos:id,' . $request->atributos_modelo);
+            $marcaRepository->selectAtributosRegistroRelacionamento('modelos:marca_id,' . $request->atributos_modelo);
         } else {
-            $marcas = $marcas->with('modelos');
+            $marcaRepository->selectAtributosRegistroRelacionamento('modelos');
         }
         if ($request->filtros) {
-            $filtros = explode(';', $request->filtros);
-            foreach ($filtros as $condicao) {
-                $c = explode(':', $condicao);
-                $marcas->where($c[0], $c[1], $c[2]);
-            }
+            $marcaRepository->filtro($request->filtros);
         }
-        $marcas = $marcas->get();
+        $marcas = $marcaRepository->getResultado();
 
         if ($marcas == null) {
             return response()->json(['msg' => 'Não foi encontrado nenhum registro.'], 404);

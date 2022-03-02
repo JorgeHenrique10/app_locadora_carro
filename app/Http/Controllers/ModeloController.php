@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Locadora\Modelo;
+use App\Repositories\Locadora\ModeloRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -19,26 +20,20 @@ class ModeloController extends Controller
      */
     public function index(Request $request)
     {
-        $modelos = [];
-        if ($request->atributos) {
-            $modelos = $this->modelo->selectRaw($request->atributos);
-        } else {
-            $modelos = $this->modelo;
-        }
+        $modeloRepository = new ModeloRepository($this->modelo);
 
+        if ($request->atributos) {
+            $modeloRepository->selectAtributosRegistro($request->atributos);
+        }
         if ($request->atributos_marca) {
-            $modelos = $modelos->with('marca:id,' . $request->atributos_marca);
+            $modeloRepository->selectAtributosRegistroRelacionamento('marca:modelo_id,' . $request->atributos_marca);
         } else {
-            $modelos = $modelos->with('marca');
+            $modeloRepository->selectAtributosRegistroRelacionamento('marca');
         }
         if ($request->filtros) {
-            $filtros = explode(';', $request->filtros);
-            foreach ($filtros as $condicao) {
-                $c = explode(':', $condicao);
-                $modelos->where($c[0], $c[1], $c[2]);
-            }
+            $modeloRepository->filtro($request->filtros);
         }
-        $modelos = $modelos->get();
+        $modelos = $modeloRepository->getResultado();
 
         if ($modelos == null) {
             return response()->json(['msg' => 'Não foi encontrado nenhum registro.'], 404);
