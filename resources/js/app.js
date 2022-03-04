@@ -20,6 +20,12 @@ window.Vue = require('vue').default;
 // files.keys().map(key => Vue.component(key.split('/').pop().split('.')[0], files(key).default))
 
 Vue.component('example-component', require('./components/ExampleComponent.vue').default);
+Vue.component('login-component', require('./components/LoginComponent.vue').default);
+Vue.component('card-component', require('./components/CardComponent.vue').default);
+Vue.component('input-component', require('./components/InputComponent.vue').default);
+Vue.component('tabela-component', require('./components/TabelaComponent.vue').default);
+Vue.component('modal-component', require('./components/ModalComponent.vue').default);
+Vue.component('marca-component', require('./components/MarcaComponent.vue').default);
 
 /**
  * Next, we will create a fresh Vue application instance and attach it to

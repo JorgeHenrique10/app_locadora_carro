@@ -20,3 +20,7 @@ Route::get('/', function () {
 Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+Route::get('/marca', function () {
+    return view('marca.index');
+})->name('marca.view.index')->middleware('auth');
