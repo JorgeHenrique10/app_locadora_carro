@@ -32,18 +32,39 @@
 
     <card-component titulo="Listagem de Marcas">
       <template v-slot:conteudo>
-        <tabela-component></tabela-component>
+        <tabela-component
+          :colunas="colunasTabela"
+          :dados="listaMarcas"
+        ></tabela-component>
       </template>
       <template v-slot:rodape>
-        <div class="float-end">
-          <button
-            type="submit"
-            class="btn btn-primary btn-sm"
-            data-bs-toggle="modal"
-            data-bs-target="#addMarcaModal"
-          >
-            Adicionar
-          </button>
+        <div class="row">
+          <paginacao-component>
+            <li
+              :class="item.active ? 'page-item active' : 'page-item'"
+              v-for="(item, index) in paginacao"
+              :key="index"
+            >
+              <a
+                class="page-link"
+                v-html="item.label"
+                @click="paginar(item.url)"
+              ></a>
+            </li>
+          </paginacao-component>
+
+          <div class="col">
+            <div class="float-end">
+              <button
+                type="submit"
+                class="btn btn-primary btn-sm"
+                data-bs-toggle="modal"
+                data-bs-target="#addMarcaModal"
+              >
+                Adicionar
+              </button>
+            </div>
+          </div>
         </div>
       </template>
     </card-component>
@@ -104,6 +125,8 @@
 export default {
   data() {
     return {
+      urlBase: "http://127.0.0.1:8000/api/marca",
+      paginacao: [],
       nomeMarca: "",
       imagemMarca: [],
       tipoAlert: "",
@@ -111,11 +134,16 @@ export default {
       mensagemAlert: "",
       errorsAlertValidacao: [],
       mostrarAlert: false,
+      colunasTabela: {
+        id: { titulo: "ID", col: "id", tipo: "texto" },
+        nome: { titulo: "Marca", col: "nome", tipo: "texto" },
+        imagem: { titulo: "Imagem", col: "imagem", tipo: "imagem" },
+      },
+      listaMarcas: [],
     };
   },
   methods: {
     salvar() {
-      //   console.log(this.nomeMarca, this.imagemMarca);
       let data = new FormData();
       data.append("nome", this.nomeMarca);
       data.append("imagem", this.imagemMarca[0]);
@@ -128,7 +156,7 @@ export default {
       };
 
       axios
-        .post("http://127.0.0.1:8000/api/marca", data, config)
+        .post(this.urlBase, data, config)
         .then((response) => {
           this.mostrarAlert = true;
           this.tituloAlert = "Marca cadastrada com sucesso.";
@@ -150,6 +178,29 @@ export default {
     carregarImagem(e) {
       this.imagemMarca = e.target.files;
     },
+    listarMarcas() {
+      axios
+        .get(this.urlBase)
+        .then((response) => {
+          console.log(response.data);
+          this.paginacao = response.data.links;
+          this.listaMarcas = response.data.data;
+        })
+        .catch((errors) => {
+          console.log(errors);
+        });
+    },
+    paginar(url) {
+      if (url) {
+        axios.get(url).then((response) => {
+          this.listaMarcas = response.data.data;
+          this.paginacao = response.data.links;
+        });
+      }
+    },
+  },
+  mounted() {
+    this.listarMarcas();
   },
 };
 </script>

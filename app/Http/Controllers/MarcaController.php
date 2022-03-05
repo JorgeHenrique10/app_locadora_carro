@@ -34,7 +34,8 @@ class MarcaController extends Controller
         if ($request->filtros) {
             $marcaRepository->filtro($request->filtros);
         }
-        $marcas = $marcaRepository->getResultado();
+        // $marcas = $marcaRepository->getResultado();
+        $marcas = $marcaRepository->getResultadoPaginado(2);
 
         if ($marcas == null) {
             return response()->json(['msg' => 'Não foi encontrado nenhum registro.'], 404);

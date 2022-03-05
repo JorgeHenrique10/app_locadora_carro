@@ -27,6 +27,7 @@ Vue.component('tabela-component', require('./components/TabelaComponent.vue').de
 Vue.component('modal-component', require('./components/ModalComponent.vue').default);
 Vue.component('marca-component', require('./components/MarcaComponent.vue').default);
 Vue.component('alert-component', require('./components/AlertComponent.vue').default);
+Vue.component('paginacao-component', require('./components/PaginacaoComponent.vue').default);
 
 /**
  * Next, we will create a fresh Vue application instance and attach it to
