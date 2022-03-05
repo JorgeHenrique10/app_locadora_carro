@@ -49,6 +49,16 @@
     </card-component>
 
     <modal-component titulo="Cadastrar Marcas" id_modal="addMarcaModal">
+      <template v-slot:alert v-if="mostrarAlert">
+        <alert-component
+          :titulo="tituloAlert"
+          :tipo="tipoAlert"
+          :mensagens_validacoes="errorsAlertValidacao"
+          :mensagem="mensagemAlert"
+        >
+        </alert-component>
+      </template>
+
       <template v-slot:conteudo>
         <div class="form-group">
           <input-component
@@ -96,6 +106,11 @@ export default {
     return {
       nomeMarca: "",
       imagemMarca: [],
+      tipoAlert: "",
+      tituloAlert: "",
+      mensagemAlert: "",
+      errorsAlertValidacao: [],
+      mostrarAlert: false,
     };
   },
   methods: {
@@ -115,10 +130,21 @@ export default {
       axios
         .post("http://127.0.0.1:8000/api/marca", data, config)
         .then((response) => {
-          console.log(response);
+          this.mostrarAlert = true;
+          this.tituloAlert = "Marca cadastrada com sucesso.";
+          this.tipoAlert = "success";
+          this.mensagemAlert =
+            "O Id da Marca cadastrada  é: " + response.data.id;
+
+          console.log(response.data.id);
         })
-        .catch((error) => {
-          console.log(error);
+        .catch((errors) => {
+          this.mostrarAlert = true;
+          this.tituloAlert = "Erro ao efetuar o cadastro da marca.";
+          this.tipoAlert = "error";
+          this.errorsAlertValidacao = errors.response.data.errors;
+          this.mensagemAlert = errors.response.data.message;
+          console.log(errors.response.data.message);
         });
     },
     carregarImagem(e) {
