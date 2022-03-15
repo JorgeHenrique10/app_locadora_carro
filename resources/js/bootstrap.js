@@ -1,8 +1,10 @@
+const { default: axios } = require('axios');
+
 window._ = require('lodash');
 
 try {
     require('bootstrap');
-} catch (e) {}
+} catch (e) { }
 
 /**
  * We'll load the axios HTTP library which allows us to easily issue requests
@@ -30,3 +32,37 @@ window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 //     cluster: process.env.MIX_PUSHER_APP_CLUSTER,
 //     forceTLS: true
 // });
+
+axios.interceptors.request.use(
+    config => {
+
+        let cookies = document.cookie.split(';');
+        let token = cookies.filter(item => {
+            return item.includes('token=');
+        });
+
+        token = token[0].replace('token=', 'Bearer ');
+
+        config.headers.Authorization = token;
+        return config;
+    },
+    error => {
+        return Promise.reject(error);
+    }
+);
+
+axios.interceptors.response.use(
+    response => {
+        return response;
+    },
+    error => {
+        console.log(error.response);
+        if (error.response.status == 401 && error.response.data.message == 'Token has expired') {
+            axios.post('http://localhost:8000/api/refresh').then(response => {
+                document.cookie = 'token=' + response.data.access_token;
+                window.location.reload();
+            })
+            return Promise.reject(error);
+        }
+    }
+)

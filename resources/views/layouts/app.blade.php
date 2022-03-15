@@ -39,7 +39,7 @@
                     <ul class="navbar-nav me-auto">
                         @auth
                             <li class="nav-item">
-                                <a class="nav-link" href="#">Cliente</a>
+                                <a class="nav-link" href="{{ route('cliente.view.index') }}">Cliente</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="#">Locações</a>
@@ -81,7 +81,7 @@
                                 <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                                     <a class="dropdown-item" href="{{ route('logout') }}"
                                         onclick="event.preventDefault();
-                                                                                    document.getElementById('logout-form').submit();">
+                                                                                        document.getElementById('logout-form').submit();">
                                         {{ __('Logout') }}
                                     </a>
 

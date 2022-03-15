@@ -32,6 +32,9 @@
 <script>
 export default {
   props: ["id_modal", "titulo"],
+  //   mounted() {
+  //     this.$store.state.mostrarAlert = false;
+  //   },
 };
 </script>
 

@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -24,3 +25,7 @@ Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name
 Route::get('/marca', function () {
     return view('marca.index');
 })->name('marca.view.index')->middleware('auth');
+
+Route::get('/cliente', function () {
+    return view('cliente.index');
+})->name('cliente.view.index')->middleware('auth');

@@ -27,7 +27,8 @@ class ClienteController extends Controller
         if ($request->filtros) {
             $clienteRepository->filtro($request->filtros);
         }
-        $cliente = $clienteRepository->getResultado();
+        // $cliente = $clienteRepository->getResultado();
+        $cliente = $clienteRepository->getResultadoPaginado(2);
 
         if ($cliente == null) {
             return response()->json(['msg' => 'Não foi encontrado nenhum registro.'], 404);

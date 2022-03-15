@@ -5,8 +5,12 @@
  */
 
 require('./bootstrap');
+import Vue from 'vue';
+import Vuex from 'vuex';
 
 window.Vue = require('vue').default;
+
+Vue.use(Vuex);
 
 /**
  * The following block of code may be used to automatically register your
@@ -18,6 +22,9 @@ window.Vue = require('vue').default;
 
 // const files = require.context('./', true, /\.vue$/i)
 // files.keys().map(key => Vue.component(key.split('/').pop().split('.')[0], files(key).default))
+Vue.component('marca-component', require('./components/MarcaComponent.vue').default);
+Vue.component('cliente-component', require('./components/ClienteComponent.vue').default);
+
 
 Vue.component('example-component', require('./components/ExampleComponent.vue').default);
 Vue.component('login-component', require('./components/LoginComponent.vue').default);
@@ -25,7 +32,6 @@ Vue.component('card-component', require('./components/CardComponent.vue').defaul
 Vue.component('input-component', require('./components/InputComponent.vue').default);
 Vue.component('tabela-component', require('./components/TabelaComponent.vue').default);
 Vue.component('modal-component', require('./components/ModalComponent.vue').default);
-Vue.component('marca-component', require('./components/MarcaComponent.vue').default);
 Vue.component('alert-component', require('./components/AlertComponent.vue').default);
 Vue.component('paginacao-component', require('./components/PaginacaoComponent.vue').default);
 
@@ -35,6 +41,15 @@ Vue.component('paginacao-component', require('./components/PaginacaoComponent.vu
  * or customize the JavaScript scaffolding to fit your unique needs.
  */
 
+
+const store = new Vuex.Store({
+    state: {
+        item: {},
+        mostrarAlert: false
+    }
+})
+
 const app = new Vue({
     el: '#app',
+    store
 });
